@@ -61,7 +61,6 @@ namespace AdventOfCode2021
                 string direction = data[0];
                 int units = int.Parse(data[1]);
 
-
                 switch (direction)
                 {
                     case "forward":
@@ -77,13 +76,9 @@ namespace AdventOfCode2021
                         aim -= units;
                         break;
                 }
-
-
-
             }
 
             int result = posHor * posDepth;
-
 
             return result.ToString();
         }
