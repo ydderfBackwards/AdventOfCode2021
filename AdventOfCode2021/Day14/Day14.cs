@@ -36,18 +36,39 @@ namespace AdventOfCode2021
         public string SolvePart2(string input)
         {
             int nrOfLoops = 40;
-            var (polymerTemplate, insertionRules) = ReadInput(input);
-            Hashtable pairCount = new Hashtable();
 
+            //Read input
+            var (polymerTemplate, insertionRules) = ReadInput(input);
 
             //Store all pairs in a table and count them. 
+            var pairCount = GetInitialPairCount(polymerTemplate);
+
+            //Chemical reaction
+            for (int i = 0; i < nrOfLoops; i++)
+            {
+                pairCount = ProcesPairCount(pairCount, insertionRules);
+            }
+
+            //Count the letters
+            var letterCount = GetLetterCount(pairCount, polymerTemplate[polymerTemplate.Length - 1]);
+
+            //Get max and min diff.
+            long result = letterCount.Max(x => x.Value) - letterCount.Min(x => x.Value);
+
+            return result.ToString();
+        }
+
+        public Dictionary<string, long> GetInitialPairCount(string polymerTemplate)
+        {
+            Dictionary<string, long> pairCount = new Dictionary<string, long>();
+
             for (int i = 0; i < (polymerTemplate.Length - 1); i++)
             {
                 string pair = polymerTemplate.Substring(i, 2);
 
                 if (pairCount.ContainsKey(pair))
                 {
-                    pairCount[pair] = int.Parse(pairCount[pair].ToString()) + 1;
+                    pairCount[pair]++;
                 }
                 else
                 {
@@ -55,53 +76,29 @@ namespace AdventOfCode2021
                 }
             }
 
-            //Chemical reaction
-            for (int i = 0; i < nrOfLoops; i++)
-            {
-                pairCount = ProcesPairCount(pairCount, insertionRules);
-
-            }
-
-
-            //Count the letters
-            var letterCount = GetLetterCount(pairCount, polymerTemplate[polymerTemplate.Length - 1]);
-
-            long max = 0;
-            long min = long.MaxValue;
-
-            //Get max and min value
-            foreach (DictionaryEntry letter in letterCount)
-            {
-
-                long currentCount = long.Parse(letter.Value.ToString());
-                max = Math.Max(max, currentCount);
-                min = Math.Min(min, currentCount);
-            }
-            long result = max - min;
-
-            return result.ToString();
+            return pairCount;
         }
 
 
-        public Hashtable GetLetterCount(Hashtable pairCount, char finalPolymer)
+        public Dictionary<char, long> GetLetterCount(Dictionary<string, long> pairCount, char finalPolymer)
         {
             string pairStr = "";
             char newLetter = ' ';
             long currentCount = 0;
-            Hashtable newLetterCount = new Hashtable();
+            Dictionary<char, long> newLetterCount = new Dictionary<char, long>();
 
 
-            foreach (DictionaryEntry pair in pairCount)
+            foreach (var pair in pairCount)
             {
-                pairStr = pair.Key.ToString();
+                pairStr = pair.Key;
                 newLetter = pairStr[0];
 
                 //The count of the current letter.
-                currentCount = long.Parse(pair.Value.ToString());
+                currentCount = pair.Value;
 
                 if (newLetterCount.ContainsKey(newLetter))
                 {
-                    newLetterCount[newLetter] = long.Parse(newLetterCount[newLetter].ToString()) + currentCount;
+                    newLetterCount[newLetter] += currentCount;
                 }
                 else
                 {
@@ -117,7 +114,7 @@ namespace AdventOfCode2021
 
             if (newLetterCount.ContainsKey(newLetter))
             {
-                newLetterCount[newLetter] = long.Parse(newLetterCount[newLetter].ToString()) + currentCount;
+                newLetterCount[newLetter] += currentCount;
             }
             else
             {
@@ -128,26 +125,26 @@ namespace AdventOfCode2021
             return newLetterCount;
         }
 
-        public Hashtable ProcesPairCount(Hashtable pairCount, Hashtable insertionRules)
+        public Dictionary<string, long> ProcesPairCount(Dictionary<string, long> pairCount, Dictionary<string, string> insertionRules)
         {
-            Hashtable newPairCount = new Hashtable();
+            Dictionary<string, long> newPairCount = new Dictionary<string, long>();
 
-            foreach (DictionaryEntry pair in pairCount)
+            foreach (var pair in pairCount)
             {
-                string pairStr = pair.Key.ToString();
-                string newLetter = insertionRules[pairStr].ToString();
+                string pairStr = pair.Key;
+                string newLetter = insertionRules[pairStr];
 
                 //Build new pairs
                 string newPair1 = pairStr[0] + newLetter;
                 string newPair2 = newLetter + pairStr[1];
 
                 //The count of the current pair.
-                long currentCount = long.Parse(pair.Value.ToString());
+                long currentCount = pair.Value;
 
                 //Add new pairs. If they exist --> add the count. Else a new record.
                 if (newPairCount.ContainsKey(newPair1))
                 {
-                    newPairCount[newPair1] = long.Parse(newPairCount[newPair1].ToString()) + currentCount;
+                    newPairCount[newPair1] += currentCount;
                 }
                 else
                 {
@@ -156,7 +153,7 @@ namespace AdventOfCode2021
 
                 if (newPairCount.ContainsKey(newPair2))
                 {
-                    newPairCount[newPair2] = long.Parse(newPairCount[newPair2].ToString()) + currentCount;
+                    newPairCount[newPair2] += currentCount;
                 }
                 else
                 {
@@ -168,7 +165,7 @@ namespace AdventOfCode2021
         }
 
 
-        public long GetQuantity(string polymerTemplate)
+        public long GetQuantity(string polymerTemplate) //For part 1
         {
             List<char> letter = polymerTemplate.ToList();
 
@@ -185,7 +182,7 @@ namespace AdventOfCode2021
 
             return max - min;
         }
-        public string Process(string polymerTemplate, Hashtable insertionRules)
+        public string Process(string polymerTemplate, Dictionary<string, string> insertionRules) //For part 1
         {
             string newPolymer = "";
 
@@ -202,10 +199,10 @@ namespace AdventOfCode2021
             return newPolymer;
         }
 
-        public (string, Hashtable) ReadInput(string input)
+        public (string, Dictionary<string, string>) ReadInput(string input)
         {
             // Dictionary<string, string> insertionRules = new Dictionary<string, string>();
-            Hashtable insertionRules = new Hashtable();
+            Dictionary<string, string> insertionRules = new Dictionary<string, string>();
 
             string[] data = input.Split(Environment.NewLine + Environment.NewLine);
 
